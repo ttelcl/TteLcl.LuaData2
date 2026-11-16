@@ -1,4 +1,7 @@
 <Solution>
+  <Folder Name="/Libraries/">
+    <Project Path="TteLcl.LuaData2/TteLcl.LuaData2.csproj" Id="975e827b-2ffe-4ebb-92f0-ff113e488b31" />
+  </Folder>
   <Folder Name="/Solution Items/">
     <File Path=".gitignore" />
     <File Path="LICENSE" />
