@@ -5,6 +5,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using Newtonsoft.Json.Linq;
+
 namespace TteLcl.LuaData2.Types;
 
 /// <summary>
@@ -16,14 +18,13 @@ namespace TteLcl.LuaData2.Types;
 /// <see cref="LuaNumber"/>s have a <see langword="double"/> value, but some may also
 /// have a <see langword="long"/> value, if it has the same value as the double.
 /// </remarks>
-public class LuaNumber: LuaToken
+public sealed class LuaNumber: LuaKeyToken<double>
 {
   /// <summary>
   /// Create a new <see cref="LuaNumber"/> from a floating point number
   /// </summary>
-  public LuaNumber(double d) : base(LuaType.Number)
+  public LuaNumber(double d) : base(LuaType.Number, d)
   {
-    Value = d;
     IntegerValue = null;
     if(d >= Int64.MinValue && d <= Int64.MaxValue)
     {
@@ -38,20 +39,39 @@ public class LuaNumber: LuaToken
   /// <summary>
   /// Create a new <see cref="LuaNumber"/> from an integer.
   /// </summary>
-  public LuaNumber(long l) : base(LuaType.Number)
+  public LuaNumber(long l) : base(LuaType.Number, l)
   {
-    Value = l;
-    IntegerValue = l;
+    if((long)Value == l)
+    {
+      IntegerValue = l;
+    }
+    else
+    {
+      // This unusual case happens when a 64 bit integer near maximum or minimum has
+      // no exact double representation. For sake of consistency this case is treated as
+      // "not representable as integer".
+      IntegerValue = null;
+    }
+  }
+
+  /// <summary><inheritdoc/></summary>
+  /// <remarks>Returns a JSON representation of the string.</remarks>
+  /// <returns><inheritdoc/></returns>
+  public override JToken ToJson(LuaJsonOptions options)
+  {
+    if(!options.KeepReals && TryGetInteger(out var integer))
+    {
+      return new JValue(integer);
+    }
+    else
+    {
+      return new JValue(Value);
+    }
   }
 
   /// <summary>
-  /// The floating point value of this <see cref="LuaNumber"/>. Always available.
-  /// </summary>
-  public double Value { get; }
-
-  /// <summary>
   /// The integer value of this <see cref="LuaNumber"/>, if available.
-  /// See also <see cref="TryGetInteger(out long)"/>
+  /// See also <see cref="TryGetInteger(out long)"/> and <see cref="IsInteger"/>
   /// </summary>
   public long? IntegerValue { get; }
 
