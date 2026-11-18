@@ -22,7 +22,7 @@ public class Token
   private Token()
   {
     Type = TokenType.Unknown;
-    Start = null;
+    Start = SourcePosition.Dummy;
     Value = String.Empty;
   }
 
@@ -91,7 +91,7 @@ public class Token
   /// <summary>
   /// The start location of the token
   /// </summary>
-  public SourcePosition? Start { get; private set; }
+  public SourcePosition Start { get; private set; }
 
   /// <summary>
   /// The string value of the token. For string literals, this is the
@@ -104,14 +104,16 @@ public class Token
   /// Create a new <see cref="LuaToken"/> wrapping the value of this token if appropriate,
   /// or return null for tokens that do not represent a value.
   /// </summary>
-  public LuaToken? AsValue()
+  public LuaValueToken? AsValue()
   {
     switch(Type)
     {
       case TokenType.Boolean:
         return LuaToken.Create(Value==TrueString);
       case TokenType.Null:
-        return LuaNil.Nil;
+        throw new InvalidOperationException(
+          $"Internal error: 'nil' not supported here");
+        //return LuaNil.Nil;
       case TokenType.Number:
         return LuaToken.Create(Double.Parse(Value, CultureInfo.InvariantCulture));
       case TokenType.String:
