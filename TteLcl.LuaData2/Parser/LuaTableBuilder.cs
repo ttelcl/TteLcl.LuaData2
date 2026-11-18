@@ -45,7 +45,6 @@ public class LuaTableBuilder
     ParserItem.ParseFile(filename, this);
   }
 
-
   /// <summary>
   /// Return the built table (and prevent changes to it)
   /// </summary>
@@ -93,7 +92,7 @@ public class LuaTableBuilder
   /// <param name="value">
   /// The value to set, or null to remove (not LuaNull.Nil!)
   /// </param>
-  public void Set(LuaKeyToken? key, LuaValueToken value)
+  public void Set(LuaKeyToken? key, LuaToken value)
   {
     if(_cloneOnModify)
     {
@@ -103,8 +102,18 @@ public class LuaTableBuilder
     }
     if(key==null)
     {
-      key = new LuaNumber(++_lastAutoKey);
+      Add(value);
     }
+    else
+    {
+      _target.SetValue(key, value);
+    }
+  }
+
+  private void Add(LuaToken value)
+  {
+    // this implementation is NOT correct!
+    var key = new LuaNumber(++_lastAutoKey);
     _target.SetValue(key, value);
   }
 
