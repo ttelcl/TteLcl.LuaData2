@@ -35,6 +35,11 @@ public sealed class LuaTable: LuaValueToken
     _intMap = new Dictionary<long, LuaValueToken>();
   }
 
+  public LuaToken Clone()
+  {
+    throw new NotImplementedException("Clone() NYI");
+  }
+
   /// <summary><inheritdoc/></summary>
   /// <param name="options"><inheritdoc/></param>
   /// <remarks>
@@ -44,7 +49,22 @@ public sealed class LuaTable: LuaValueToken
   /// <returns><inheritdoc/></returns>
   public override JToken ToJson(LuaJsonOptions options)
   {
-    throw new NotImplementedException("Work in progress");
+    var ja = new JArray();
+    foreach(var (key, value) in _content)
+    {
+      var jo = new JObject();
+      var keyToken = key.ToJson(options);
+      var valueToken = value.ToJson(options);
+      jo["key"] = keyToken.ToString();
+      jo["rawkey"] = keyToken;
+      if(key is LuaNumber kn && kn.TryGetInteger(out var index))
+      {
+        jo["index"] = index;
+      }
+      jo["value"] = valueToken;
+      ja.Add(jo);
+    }
+    return ja;
   }
 
   /// <summary>
@@ -222,6 +242,18 @@ public sealed class LuaTable: LuaValueToken
   {
     return "table";
   }
+
+  public void Sort()
+  {
+    if(!__sortNotImplementedWarning)
+    {
+      __sortNotImplementedWarning = true;
+      Console.ForegroundColor = ConsoleColor.Red;
+      Console.WriteLine("SORTING NOT IMPLEMENTED");
+      Console.ResetColor();
+    }
+  }
+  private static bool __sortNotImplementedWarning = false;
 
 
 }

@@ -62,9 +62,10 @@ public class ParserItem
   public LuaTableBuilder? TableBuilder { get; private set; }
 
   /// <summary>
-  /// Get or set a value (for Value items)
+  /// Get or set a value (for Value items). Note that this can be LuaNil, so the
+  /// type is <see cref="LuaToken"/>, not <see cref="LuaValueToken"/>.
   /// </summary>
-  public LuaValueToken? Value { get; private set; }
+  public LuaToken? Value { get; private set; }
 
   /// <summary>
   /// Get or set a start position for the item (for error messages)
@@ -96,7 +97,7 @@ public class ParserItem
   /// <returns>
   /// The new top of the stack
   /// </returns>
-  public ParserItem PushToken(Token token)
+  public ParserItem PushToken(LexToken token)
   {
     ParserItem stack = PurePush(token);
     stack = Reduce(token.Start, stack);
@@ -116,7 +117,7 @@ public class ParserItem
   public static void ParseFile(string filename, LuaTableBuilder global)
   {
     ParserItem stack = NewStack(global);
-    foreach(Token t in Token.Enumerate(filename, true))
+    foreach(LexToken t in LexToken.Enumerate(filename, true))
     {
       stack = stack.PushToken(t);
     }
@@ -155,7 +156,7 @@ public class ParserItem
   public static void ParseString(string? label, string text, LuaTableBuilder global)
   {
     ParserItem stack = NewStack(global);
-    foreach(Token t in Token.EnumerateString(label ?? "text", text, true))
+    foreach(LexToken t in LexToken.EnumerateString(label ?? "text", text, true))
     {
       stack = stack.PushToken(t);
     }
@@ -211,7 +212,7 @@ public class ParserItem
     return ParseString(null, text);
   }
 
-  private ParserItem PurePush(Token token)
+  private ParserItem PurePush(LexToken token)
   {
     switch(token.Type)
     {
@@ -219,9 +220,9 @@ public class ParserItem
         throw new NotSupportedException(token.Start.ToString());
 
       case TokenType.Null:
-        throw new InvalidOperationException(
-          $"{token.Start}: Internal/design error: not expecting a 'nil' here");
-        //return PushValue(token.Start, token.AsValue());
+        //throw new InvalidOperationException(
+        //  $"{token.Start}: Internal/design error: not expecting a 'nil' here");
+        return PushValue(token.Start, token.AsValue());
 
       case TokenType.Boolean:
       case TokenType.Number:
@@ -371,7 +372,7 @@ public class ParserItem
     };
   }
 
-  ParserItem PushValue(SourcePosition src, LuaValueToken value)
+  ParserItem PushValue(SourcePosition src, LuaToken value)
   {
     return new ParserItem(this)
     {

@@ -63,8 +63,7 @@ public class LuaTableBuilder
     _cloneOnModify = true;
     if(sort)
     {
-      throw new NotImplementedException("sorting");
-      //_target.Sort();
+      _target.Sort();
     }
     return _target;
   }
@@ -112,7 +111,7 @@ public class LuaTableBuilder
 
   private void Add(LuaToken value)
   {
-    // this implementation is NOT correct!
+    // this implementation is flawed, but good enough for now
     var key = new LuaNumber(++_lastAutoKey);
     _target.SetValue(key, value);
   }

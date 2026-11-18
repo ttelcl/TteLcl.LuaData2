@@ -14,12 +14,12 @@ namespace TteLcl.LuaData2.Lexer;
 /// Represents a token. This class acts as immutable. Use the Enumerate
 /// method to create a stream of tokens.
 /// </summary>
-public class Token
+public class LexToken
 {
   /// <summary>
   /// Create a new, uninitialized, Token
   /// </summary>
-  private Token()
+  private LexToken()
   {
     Type = TokenType.Unknown;
     Start = SourcePosition.Dummy;
@@ -29,7 +29,7 @@ public class Token
   /// <summary>
   /// Create a new token and load it from the provided source
   /// </summary>
-  internal Token(CharacterSource source)
+  internal LexToken(CharacterSource source)
     : this()
   {
     Load(source);
@@ -38,33 +38,33 @@ public class Token
   /// <summary>
   /// Enumerate the tokens in the source file
   /// </summary>
-  public static IEnumerable<Token> Enumerate(string filename, bool includeEof)
+  public static IEnumerable<LexToken> Enumerate(string filename, bool includeEof)
   {
     using var source = new CharacterSource(filename);
     while(!source.IsEof)
     {
-      yield return new Token(source);
+      yield return new LexToken(source);
     }
     if(includeEof)
     {
-      yield return new Token(source);
+      yield return new LexToken(source);
     }
   }
 
   /// <summary>
   /// Emumerate the token(s) in the specified LUA fragment
   /// </summary>
-  public static IEnumerable<Token> EnumerateString(
+  public static IEnumerable<LexToken> EnumerateString(
     string label, string luaText, bool includeEof)
   {
     using var source = new CharacterSource(label, new StringReader(luaText));
     while(!source.IsEof)
     {
-      yield return new Token(source);
+      yield return new LexToken(source);
     }
     if(includeEof)
     {
-      yield return new Token(source);
+      yield return new LexToken(source);
     }
   }
 
@@ -104,16 +104,15 @@ public class Token
   /// Create a new <see cref="LuaToken"/> wrapping the value of this token if appropriate,
   /// or return null for tokens that do not represent a value.
   /// </summary>
-  public LuaValueToken? AsValue()
+  public LuaToken? AsValue()
   {
     switch(Type)
     {
       case TokenType.Boolean:
         return LuaToken.Create(Value==TrueString);
       case TokenType.Null:
-        throw new InvalidOperationException(
-          $"Internal error: 'nil' not supported here");
-        //return LuaNil.Nil;
+        //throw new InvalidOperationException($"Internal error: 'nil' not supported here");
+        return LuaNil.Nil;
       case TokenType.Number:
         return LuaToken.Create(Double.Parse(Value, CultureInfo.InvariantCulture));
       case TokenType.String:
