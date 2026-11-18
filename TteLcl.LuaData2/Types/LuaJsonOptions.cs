@@ -33,4 +33,10 @@ public class LuaJsonOptions
   /// </summary>
   public bool KeepReals { get; set; }
 
+  /// <summary>
+  /// If true, tables for which ALL keys are strings are converted to compact objects instead of
+  /// verbose arrays-of-objects
+  /// </summary>
+  public bool AutoObjects { get; set; }
+
 }

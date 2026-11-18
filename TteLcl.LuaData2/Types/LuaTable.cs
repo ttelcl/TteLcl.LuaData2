@@ -49,22 +49,40 @@ public sealed class LuaTable: LuaValueToken
   /// <returns><inheritdoc/></returns>
   public override JToken ToJson(LuaJsonOptions options)
   {
-    var ja = new JArray();
-    foreach(var (key, value) in _content)
+    var objectMode = options.AutoObjects && _content.Keys.All(lkt => lkt is LuaString);
+    if(objectMode)
     {
       var jo = new JObject();
-      var keyToken = key.ToJson(options);
-      var valueToken = value.ToJson(options);
-      jo["key"] = keyToken.ToString();
-      jo["rawkey"] = keyToken;
-      if(key is LuaNumber kn && kn.TryGetInteger(out var index))
+      foreach(var (key, value) in _content)
       {
-        jo["index"] = index;
+        if(key is not LuaString ls)
+        {
+          throw new InvalidOperationException(
+            $"Internal error - found non-string key '{key}' when there should be none");
+        }
+        jo[ls.Value] = value.ToJson(options);
       }
-      jo["value"] = valueToken;
-      ja.Add(jo);
+      return jo;
     }
-    return ja;
+    else
+    {
+      var ja = new JArray();
+      foreach(var (key, value) in _content)
+      {
+        var jo = new JObject();
+        var keyToken = key.ToJson(options);
+        var valueToken = value.ToJson(options);
+        jo["key"] = keyToken.ToString();
+        jo["rawkey"] = keyToken;
+        if(key is LuaNumber kn && kn.TryGetInteger(out var index))
+        {
+          jo["index"] = index;
+        }
+        jo["value"] = valueToken;
+        ja.Add(jo);
+      }
+      return ja;
+    }
   }
 
   /// <summary>

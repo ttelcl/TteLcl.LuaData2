@@ -222,7 +222,7 @@ public class ParserItem
       case TokenType.Null:
         //throw new InvalidOperationException(
         //  $"{token.Start}: Internal/design error: not expecting a 'nil' here");
-        return PushValue(token.Start, token.AsValue());
+        return PushValue(token.Start, token.AsValue()!);
 
       case TokenType.Boolean:
       case TokenType.Number:

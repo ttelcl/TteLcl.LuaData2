@@ -14,6 +14,7 @@ open TteLcl.LuaData2.Types
 type private Options = {
   OutputName: string
   InputNames: string list
+  AutoObjects: bool
 }
 
 let private parseArgs args =
@@ -29,6 +30,8 @@ let private parseArgs args =
       rest |> parseMore {o with OutputName = outfile}
     | "-i" :: infile :: rest ->
       rest |> parseMore {o with InputNames = infile :: o.InputNames}
+    | "-no-objects" :: rest ->
+      rest |> parseMore {o with AutoObjects = false}
     | [] ->
       let o =
         if o.OutputName |> String.IsNullOrEmpty && o.InputNames.Length = 1 then
@@ -51,6 +54,7 @@ let private parseArgs args =
   args |> parseMore {
     OutputName = null
     InputNames = []
+    AutoObjects = true
   }
 
 // The actual command execution, taking the parsed Options as argument
@@ -62,6 +66,7 @@ let private runFoo o =
   let globalTable = builder.Bake()
   let jOptions = new LuaJsonOptions()
   jOptions.KeepReals <- false
+  jOptions.AutoObjects <- o.AutoObjects
   let jtoken = globalTable.ToJson(jOptions)
   let json = JsonConvert.SerializeObject(jtoken, Formatting.Indented)
   do
