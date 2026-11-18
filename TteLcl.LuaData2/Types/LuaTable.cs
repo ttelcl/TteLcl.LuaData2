@@ -243,17 +243,66 @@ public sealed class LuaTable: LuaValueToken
     return "table";
   }
 
+  /// <summary>
+  /// Sort all entries, by key type and value in the order integer - real - boolean - string
+  /// </summary>
+  /// <exception cref="InvalidOperationException"></exception>
   public void Sort()
   {
-    if(!__sortNotImplementedWarning)
+    // Split by type into parts, sort each part, then glue everything back together
+    var integers = new Dictionary<long, KeyValuePair<LuaKeyToken, LuaValueToken>>();
+    var reals = new Dictionary<double, KeyValuePair<LuaKeyToken, LuaValueToken>>();
+    var bools = new Dictionary<bool, KeyValuePair<LuaKeyToken, LuaValueToken>>();
+    var strings = new Dictionary<string, KeyValuePair<LuaKeyToken, LuaValueToken>>();
+
+    foreach(var kvp in _content)
     {
-      __sortNotImplementedWarning = true;
-      Console.ForegroundColor = ConsoleColor.Red;
-      Console.WriteLine("SORTING NOT IMPLEMENTED");
-      Console.ResetColor();
+      var key = kvp.Key;
+      switch(key)
+      {
+        case LuaNumber number:
+          {
+            if(number.TryGetInteger(out var integer))
+            {
+              integers[integer] = kvp;
+            }
+            else
+            {
+              reals[number.Value] = kvp;
+            }
+            break;
+          }
+        case LuaString text:
+          strings[text.Value] = kvp;
+          break;
+        case LuaBoolean boolean:
+          bools[boolean.Value] = kvp;
+          break;
+        default:
+          throw new InvalidOperationException(
+            $"missing handler for type '{key.Type}'");
+      }
+    }
+    _content.Clear();
+    _intMap.Clear();
+    foreach(var kkvp in from x in integers orderby x.Key select x)
+    {
+      _intMap[kkvp.Key] = kkvp.Value.Value;
+      _content[kkvp.Value.Key] = kkvp.Value.Value;
+    }
+    foreach(var kvp in from x in reals orderby x.Key select x.Value)
+    {
+      _content[kvp.Key] = kvp.Value;
+    }
+    foreach(var kvp in from x in bools orderby x.Key select x.Value)
+    {
+      _content[kvp.Key] = kvp.Value;
+    }
+    foreach(var kvp in from x in strings orderby x.Key select x.Value)
+    {
+      _content[kvp.Key] = kvp.Value;
     }
   }
-  private static bool __sortNotImplementedWarning = false;
 
 
 }
