@@ -28,6 +28,12 @@ public abstract class LuaToken
   public LuaType Type { get; }
 
   /// <summary>
+  /// Returns a clone of the token. Immutable subclasses may return themselves.
+  /// </summary>
+  /// <returns></returns>
+  public abstract LuaToken Clone();
+
+  /// <summary>
   /// Convert this <see cref="LuaToken"/> to a corresponding <see cref="JToken"/>.
   /// </summary>
   /// <returns></returns>
@@ -124,6 +130,7 @@ public abstract class LuaKeyToken: LuaValueToken
   /// </remarks>
   /// <returns><inheritdoc/></returns>
   public abstract override bool Equals(object? obj);
+
 }
 
 /// <summary>
@@ -164,5 +171,18 @@ public abstract class LuaKeyToken<T>: LuaKeyToken, IEquatable<LuaKeyToken<T>>
   public bool Equals(LuaKeyToken<T>? other)
   {
     return other != null ? Value.Equals(other.Value) : false;
+  }
+
+  /// <summary>
+  /// <inheritdoc/>
+  /// </summary>
+  /// <remarks>
+  /// This implementation returns itself, working from the assumption that all subclasses
+  /// are immutable
+  /// </remarks>
+  /// <returns></returns>
+  public override LuaToken Clone()
+  {
+    return this;
   }
 }

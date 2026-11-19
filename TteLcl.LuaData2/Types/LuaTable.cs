@@ -35,9 +35,15 @@ public sealed class LuaTable: LuaValueToken
     _intMap = new Dictionary<long, LuaValueToken>();
   }
 
-  public LuaToken Clone()
+  /// <inheritdoc/>
+  public override LuaToken Clone()
   {
-    throw new NotImplementedException("Clone() NYI");
+    var clone = new LuaTable();
+    foreach(var (key, value) in _content)
+    {
+      clone.SetValue(key /* Always immutable, no need to clone! */, value.Clone()); // fills both _content and _intmap of the clone
+    }
+    return clone;
   }
 
   /// <summary>
@@ -276,7 +282,6 @@ public sealed class LuaTable: LuaValueToken
       _content[kvp.Key] = kvp.Value;
     }
   }
-
 
   /// <summary><inheritdoc/></summary>
   /// <param name="options"><inheritdoc/></param>

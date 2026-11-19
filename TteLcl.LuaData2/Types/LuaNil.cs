@@ -44,4 +44,11 @@ public sealed class LuaNil: LuaToken
   {
     return "nil";
   }
+
+  /// <inheritdoc/>
+  public override LuaToken Clone()
+  {
+    // The only valid value of this type
+    return Nil;
+  }
 }
