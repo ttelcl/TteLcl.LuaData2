@@ -33,6 +33,20 @@ let usage focus =
     cp "  \fg-objects\f0\fx        Tables that only have only string keys are converted to objects"
     cp "  \fx\fx\fx                (bypassing \fg-raw\f0/\fg-split\f0/\fg-compact\f0)"
     cp ""
+  if showSection "export" then
+    cp "\foluajson2 \fyexport \fg-from \fcsource \f0[\fg-to \fcdest\f0] [\fg-compact\f0|\fg-split\f0|\fg-raw\f0] [\fg-f\f0]"
+    cp "  Convert all lua files found in the subtree rooted at directory \fcsource\f0 to json files in \fcdest\f0."
+    cp "  Only lua files that were not converted yet or changed since conversion are converted."
+  if showDetail "export" then
+    cp "  \fg-from \fcsource\f0    The directory to scan recursively for lua files to convert."
+    cp "  \fg-to \fc dest\f0       The directory to store converted json files into. Defaults to \fcsource\f0."
+    cp "  \fg-split\f0\fx          Split tables by key type ('x' for integer indexed, 'k' for string keyed)"
+    cp "  \fx\fx\fx                In untypical cases you may also find 'b' (boolean-keyed) and 'f' (float-indexed)"
+    cp "  \fg-compact\f0\fx        Like \fg-split\f0, but if there is only one type, it is unwrapped. And if there is"
+    cp "  \fx\fx\fx                none, null is returned. This is the default for \fyexport\f0."
+    cp "  \fg-raw\f0\fx            Emit tables in raw form, an array of key-value objects"
+    cp "  \fg-f\f0\fx              Overwrite existing outputs (ignore timestamps)"
+    cp ""
   if showSection "" then
     cp "\fyCommon options\f0"
     cp "  \fg-v\f0   Be more verbose. Also affects details of crash messages."

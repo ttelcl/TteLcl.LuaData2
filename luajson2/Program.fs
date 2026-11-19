@@ -15,7 +15,8 @@ let rec run arglist =
   | [] ->
     Usage.usage ""
     0  // program return status code to the operating system; 0 == "OK"
-  // Example subcommand 'foo'. Replace with your own and add additional subcommands to your liking:
+  | "export" :: rest ->
+    rest |> AppExport.run
   | "convert" :: rest ->
     rest |> AppConvert.run
   | x :: _ when x.StartsWith('-') ->

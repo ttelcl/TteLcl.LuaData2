@@ -5,12 +5,12 @@ open System.IO
 
 open Newtonsoft.Json
 
-open ColorPrint
-open CommonTools
 open TteLcl.LuaData2.Parser
 open TteLcl.LuaData2.Types
 
-// A type for holding this command's command line options
+open ColorPrint
+open CommonTools
+
 type private Options = {
   OutputName: string
   InputNames: string list
@@ -70,8 +70,7 @@ let private parseArgs args =
     Style = None
   }
 
-// The actual command execution, taking the parsed Options as argument
-let private runFoo o =
+let private runConvert o =
   let builder = new LuaTableBuilder();
   for inputFile in o.InputNames do
     cp $"Loading '\fg{inputFile}\f0'..."
@@ -97,4 +96,4 @@ let run args =
     Usage.usage "convert"
     1
   | Some o ->
-    o |> runFoo
+    o |> runConvert
