@@ -52,37 +52,110 @@ public sealed class LuaTable: LuaValueToken
     var objectMode = options.AutoObjects && _content.Keys.All(lkt => lkt is LuaString);
     if(objectMode)
     {
-      var jo = new JObject();
-      foreach(var (key, value) in _content)
-      {
-        if(key is not LuaString ls)
-        {
-          throw new InvalidOperationException(
-            $"Internal error - found non-string key '{key}' when there should be none");
-        }
-        jo[ls.Value] = value.ToJson(options);
-      }
-      return jo;
+      return ToJsonObject(options);
     }
-    else
+    else if(options.Split)
     {
-      var ja = new JArray();
-      foreach(var (key, value) in _content)
-      {
-        var jo = new JObject();
-        var keyToken = key.ToJson(options);
-        var valueToken = value.ToJson(options);
-        jo["key"] = keyToken.ToString();
-        jo["rawkey"] = keyToken;
-        if(key is LuaNumber kn && kn.TryGetInteger(out var index))
-        {
-          jo["index"] = index;
-        }
-        jo["value"] = valueToken;
-        ja.Add(jo);
-      }
-      return ja;
+      return ToJsonSplit(options);
     }
+    else 
+    {
+      return ToJsonRaw(options);
+    }
+  }
+
+  private JToken ToJsonSplit(LuaJsonOptions options)
+  {
+    var jo = new JObject();
+
+    var jx = new JArray();
+    var jk = new JObject();
+    var jb = new JObject();
+    var jf = new JArray();
+    foreach(var (key, value) in _content)
+    {
+      var jvalue = value.ToJson(options);
+      switch(key)
+      {
+        case LuaNumber ln:
+          var jno = new JObject();
+          if(ln.TryGetInteger(out var integer))
+          {
+            jno["index"] = integer;
+            jno["value"] = jvalue;
+            jx.Add(jno);
+          }
+          else
+          {
+            jno["key"] = ln.Value;
+            jno["value"] = jvalue;
+            jf.Add(jno);
+          }
+          break;
+        case LuaString ls:
+          jk[ls.Value] = jvalue;
+          break;
+        case LuaBoolean lb:
+          jb[lb.Value ? "true" : "false"] = jvalue;
+          break;
+        default:
+          throw new InvalidOperationException(
+            $"Internal error: unexpected key type {key.Type}");
+      }
+    }
+    if(jx.Count > 0)
+    {
+      jo["x"] = jx;
+    }
+    if(jf.Count > 0)
+    {
+      jo["f"] = jf;
+    }
+    if(jb.Count > 0)
+    {
+      jo["b"] = jb;
+    }
+    if(jk.Count > 0)
+    {
+      jo["k"] = jk;
+    }
+
+    return jo;
+  }
+
+  private JToken ToJsonRaw(LuaJsonOptions options)
+  {
+    var ja = new JArray();
+    foreach(var (key, value) in _content)
+    {
+      var jo = new JObject();
+      var keyToken = key.ToJson(options);
+      var valueToken = value.ToJson(options);
+      jo["key"] = keyToken.ToString();
+      jo["rawkey"] = keyToken;
+      if(key is LuaNumber kn && kn.TryGetInteger(out var index))
+      {
+        jo["index"] = index;
+      }
+      jo["value"] = valueToken;
+      ja.Add(jo);
+    }
+    return ja;
+  }
+
+  private JToken ToJsonObject(LuaJsonOptions options)
+  {
+    var jo = new JObject();
+    foreach(var (key, value) in _content)
+    {
+      if(key is not LuaString ls)
+      {
+        throw new InvalidOperationException(
+          $"Internal error - found non-string key '{key}' when there should be none");
+      }
+      jo[ls.Value] = value.ToJson(options);
+    }
+    return jo;
   }
 
   /// <summary>

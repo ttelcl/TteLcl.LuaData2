@@ -1,8 +1,4 @@
-﻿/*
- * (c) 2026  ttelcl / ttelcl
- */
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -34,9 +30,24 @@ public class LuaJsonOptions
   public bool KeepReals { get; set; }
 
   /// <summary>
-  /// If true, tables for which ALL keys are strings are converted to compact objects instead of
-  /// verbose arrays-of-objects
+  /// If <see langword="true"/>, tables for which ALL keys are strings are converted to compact objects instead of
+  /// verbose arrays-of-objects. 
   /// </summary>
   public bool AutoObjects { get; set; }
 
+  /// <summary>
+  /// If <see langword="true"/>, the JSON representation of LUA tables splits them by type.
+  /// If <see langword="false"/>, the raw model is kept.
+  /// </summary>
+  /// <remarks>
+  /// The split model is an object (instead of the array in the raw model) which may contain the following 4 fixed fields
+  /// (empty ones are omitted).
+  /// <list type="bullet">
+  /// <item><term>"x"</term> table items that are indexed by an integer, provided as an array of index-value pairs. Common</item>
+  /// <item><term>"k"</term> table items that are indexed by a string, as an object. Common</item>
+  /// <item><term>"b"</term> table items that are indexed by a boolean, as an object. Very uncommon.</item>
+  /// <item><term>"f"</term> table items that are indexed by a non-integer number. Very uncommon. A design flaw, really...</item>
+  /// </list>
+  /// </remarks>
+  public bool Split { get; set; }
 }

@@ -14,6 +14,7 @@ open TteLcl.LuaData2.Types
 type private Options = {
   OutputName: string
   InputNames: string list
+  Split: bool
   AutoObjects: bool
 }
 
@@ -30,8 +31,14 @@ let private parseArgs args =
       rest |> parseMore {o with OutputName = outfile}
     | "-i" :: infile :: rest ->
       rest |> parseMore {o with InputNames = infile :: o.InputNames}
-    | "-no-objects" :: rest ->
+    | "-split" :: rest ->
+      rest |> parseMore {o with Split = true}
+    | "-raw" :: rest ->
+      rest |> parseMore {o with Split = false}
+    | "-no-objects" :: rest ->  // deprecated
       rest |> parseMore {o with AutoObjects = false}
+    | "-objects" :: rest ->  // deprecated
+      rest |> parseMore {o with AutoObjects = true}
     | [] ->
       let o =
         if o.OutputName |> String.IsNullOrEmpty && o.InputNames.Length = 1 then
@@ -54,7 +61,8 @@ let private parseArgs args =
   args |> parseMore {
     OutputName = null
     InputNames = []
-    AutoObjects = true
+    AutoObjects = false
+    Split = true
   }
 
 // The actual command execution, taking the parsed Options as argument
@@ -67,6 +75,7 @@ let private runFoo o =
   let jOptions = new LuaJsonOptions()
   jOptions.KeepReals <- false
   jOptions.AutoObjects <- o.AutoObjects
+  jOptions.Split <- o.Split
   let jtoken = globalTable.ToJson(jOptions)
   let json = JsonConvert.SerializeObject(jtoken, Formatting.Indented)
   do
