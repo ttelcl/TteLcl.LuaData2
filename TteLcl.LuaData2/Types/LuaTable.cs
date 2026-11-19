@@ -40,124 +40,6 @@ public sealed class LuaTable: LuaValueToken
     throw new NotImplementedException("Clone() NYI");
   }
 
-  /// <summary><inheritdoc/></summary>
-  /// <param name="options"><inheritdoc/></param>
-  /// <remarks>
-  /// Returns a JSON representation of the table.
-  /// ((TO BE DOCUMENTED))
-  /// </remarks>
-  /// <returns><inheritdoc/></returns>
-  public override JToken ToJson(LuaJsonOptions options)
-  {
-    var objectMode = options.AutoObjects && _content.Keys.All(lkt => lkt is LuaString);
-    if(objectMode)
-    {
-      return ToJsonObject(options);
-    }
-    else if(options.Split)
-    {
-      return ToJsonSplit(options);
-    }
-    else 
-    {
-      return ToJsonRaw(options);
-    }
-  }
-
-  private JToken ToJsonSplit(LuaJsonOptions options)
-  {
-    var jo = new JObject();
-
-    var jx = new JArray();
-    var jk = new JObject();
-    var jb = new JObject();
-    var jf = new JArray();
-    foreach(var (key, value) in _content)
-    {
-      var jvalue = value.ToJson(options);
-      switch(key)
-      {
-        case LuaNumber ln:
-          var jno = new JObject();
-          if(ln.TryGetInteger(out var integer))
-          {
-            jno["index"] = integer;
-            jno["value"] = jvalue;
-            jx.Add(jno);
-          }
-          else
-          {
-            jno["key"] = ln.Value;
-            jno["value"] = jvalue;
-            jf.Add(jno);
-          }
-          break;
-        case LuaString ls:
-          jk[ls.Value] = jvalue;
-          break;
-        case LuaBoolean lb:
-          jb[lb.Value ? "true" : "false"] = jvalue;
-          break;
-        default:
-          throw new InvalidOperationException(
-            $"Internal error: unexpected key type {key.Type}");
-      }
-    }
-    if(jx.Count > 0)
-    {
-      jo["x"] = jx;
-    }
-    if(jf.Count > 0)
-    {
-      jo["f"] = jf;
-    }
-    if(jb.Count > 0)
-    {
-      jo["b"] = jb;
-    }
-    if(jk.Count > 0)
-    {
-      jo["k"] = jk;
-    }
-
-    return jo;
-  }
-
-  private JToken ToJsonRaw(LuaJsonOptions options)
-  {
-    var ja = new JArray();
-    foreach(var (key, value) in _content)
-    {
-      var jo = new JObject();
-      var keyToken = key.ToJson(options);
-      var valueToken = value.ToJson(options);
-      jo["key"] = keyToken.ToString();
-      jo["rawkey"] = keyToken;
-      if(key is LuaNumber kn && kn.TryGetInteger(out var index))
-      {
-        jo["index"] = index;
-      }
-      jo["value"] = valueToken;
-      ja.Add(jo);
-    }
-    return ja;
-  }
-
-  private JToken ToJsonObject(LuaJsonOptions options)
-  {
-    var jo = new JObject();
-    foreach(var (key, value) in _content)
-    {
-      if(key is not LuaString ls)
-      {
-        throw new InvalidOperationException(
-          $"Internal error - found non-string key '{key}' when there should be none");
-      }
-      jo[ls.Value] = value.ToJson(options);
-    }
-    return jo;
-  }
-
   /// <summary>
   /// Get, set, or remove the value for <paramref name="key"/> (using LUA semantics,
   /// i.e. a miss returns <see cref="LuaNil.Nil"/>, not <see langword="null"/>).
@@ -395,5 +277,142 @@ public sealed class LuaTable: LuaValueToken
     }
   }
 
+
+  /// <summary><inheritdoc/></summary>
+  /// <param name="options"><inheritdoc/></param>
+  /// <remarks>
+  /// Returns a JSON representation of the table.
+  /// ((TO BE DOCUMENTED))
+  /// </remarks>
+  /// <returns><inheritdoc/></returns>
+  public override JToken ToJson(LuaJsonOptions options)
+  {
+    var objectMode = options.AutoObjects && _content.Keys.All(lkt => lkt is LuaString);
+    if(objectMode)
+    {
+      return ToJsonObject(options);
+    }
+    else if(options.Style == LuaJsonStyle.Split)
+    {
+      return ToJsonSplit(options, false);
+    }
+    else if(options.Style == LuaJsonStyle.Compact)
+    {
+      return ToJsonSplit(options, true);
+    }
+    else
+    {
+      return ToJsonRaw(options);
+    }
+  }
+
+  private JToken ToJsonSplit(LuaJsonOptions options, bool compact)
+  {
+    var jo = new JObject();
+
+    var jx = new JArray();
+    var jk = new JObject();
+    var jb = new JObject();
+    var jf = new JArray();
+    foreach(var (key, value) in _content)
+    {
+      var jvalue = value.ToJson(options);
+      switch(key)
+      {
+        case LuaNumber ln:
+          var jno = new JObject();
+          if(ln.TryGetInteger(out var integer))
+          {
+            jno["index"] = integer;
+            jno["value"] = jvalue;
+            jx.Add(jno);
+          }
+          else
+          {
+            jno["key"] = ln.Value;
+            jno["value"] = jvalue;
+            jf.Add(jno);
+          }
+          break;
+        case LuaString ls:
+          jk[ls.Value] = jvalue;
+          break;
+        case LuaBoolean lb:
+          jb[lb.Value ? "true" : "false"] = jvalue;
+          break;
+        default:
+          throw new InvalidOperationException(
+            $"Internal error: unexpected key type {key.Type}");
+      }
+    }
+    var list = new List<JToken>(); // used to count them
+    if(jx.Count > 0)
+    {
+      jo["x"] = jx;
+      list.Add(jx);
+    }
+    if(jf.Count > 0)
+    {
+      jo["f"] = jf;
+      list.Add(jf);
+    }
+    if(jb.Count > 0)
+    {
+      jo["b"] = jb;
+      list.Add(jb);
+    }
+    if(jk.Count > 0)
+    {
+      jo["k"] = jk;
+      list.Add(jk);
+    }
+    if(compact && list.Count == 1)
+    {
+      return list[0];
+    }
+    if(compact && list.Count == 0)
+    {
+      // The table was empty. But we don't know if it would have been keyed or indexed if it weren't,
+      // so we don't know if we should return an empty object or an empty array.
+      // Resolve this by doing neither and return null instead...
+      return JValue.CreateNull();
+    }
+    return jo;
+  }
+
+  private JArray ToJsonRaw(LuaJsonOptions options)
+  {
+    var ja = new JArray();
+    foreach(var (key, value) in _content)
+    {
+      var jo = new JObject();
+      var keyToken = key.ToJson(options);
+      var valueToken = value.ToJson(options);
+      jo["key"] = keyToken.ToString();
+      jo["rawkey"] = keyToken;
+      if(key is LuaNumber kn && kn.TryGetInteger(out var index))
+      {
+        jo["index"] = index;
+      }
+      jo["value"] = valueToken;
+      ja.Add(jo);
+    }
+    return ja;
+  }
+
+  private JObject ToJsonObject(LuaJsonOptions options)
+  {
+    var jo = new JObject();
+    foreach(var (key, value) in _content)
+    {
+      if(key is not LuaString ls)
+      {
+        throw new InvalidOperationException(
+          $"Internal error - found non-string key '{key}' when there should be none");
+      }
+      jo[ls.Value] = value.ToJson(options);
+    }
+    return jo;
+  }
 
 }

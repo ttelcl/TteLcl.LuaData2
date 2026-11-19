@@ -14,8 +14,8 @@ open TteLcl.LuaData2.Types
 type private Options = {
   OutputName: string
   InputNames: string list
-  Split: bool
   AutoObjects: bool
+  Style: LuaJsonStyle option
 }
 
 let private parseArgs args =
@@ -32,9 +32,11 @@ let private parseArgs args =
     | "-i" :: infile :: rest ->
       rest |> parseMore {o with InputNames = infile :: o.InputNames}
     | "-split" :: rest ->
-      rest |> parseMore {o with Split = true}
+      rest |> parseMore {o with Style = LuaJsonStyle.Split |> Some}
+    | "-compact" :: rest ->
+      rest |> parseMore {o with Style = LuaJsonStyle.Compact |> Some}
     | "-raw" :: rest ->
-      rest |> parseMore {o with Split = false}
+      rest |> parseMore {o with Style = LuaJsonStyle.Raw |> Some}
     | "-no-objects" :: rest ->  // deprecated
       rest |> parseMore {o with AutoObjects = false}
     | "-objects" :: rest ->  // deprecated
@@ -50,6 +52,9 @@ let private parseArgs args =
       if o.InputNames |> List.isEmpty then
         cp "\foNo input files (\fg-i\fo) specified\f0."
         None
+      elif o.Style.IsNone then
+        cp "\foExpecting one of \fg-compact\f0, \fg-split\f0, \fg-raw\f0\f0."
+        None
       elif o.OutputName |> String.IsNullOrEmpty then
         cp "\foNo output file (\fg-o\fo) specified\f0."
         None
@@ -62,7 +67,7 @@ let private parseArgs args =
     OutputName = null
     InputNames = []
     AutoObjects = false
-    Split = true
+    Style = None
   }
 
 // The actual command execution, taking the parsed Options as argument
@@ -75,7 +80,7 @@ let private runFoo o =
   let jOptions = new LuaJsonOptions()
   jOptions.KeepReals <- false
   jOptions.AutoObjects <- o.AutoObjects
-  jOptions.Split <- o.Split
+  jOptions.Style <- o.Style.Value
   let jtoken = globalTable.ToJson(jOptions)
   let json = JsonConvert.SerializeObject(jtoken, Formatting.Indented)
   do

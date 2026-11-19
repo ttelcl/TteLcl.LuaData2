@@ -19,16 +19,19 @@ let usage focus =
     cp "\foLua-data to Json converter\f0."
     cp ""
   if showSection "convert" then
-    cp "\foluajson2 \f0[\fyconvert\f0] \fg-o \fcfile.json\f0 {\fg-i \fcfile.lua\f0} [\fg-split\f0|\fg-raw\f0] [\fg-objects\f0|\fg-no-objects\f0]"
+    cp "\foluajson2 \f0[\fyconvert\f0] \fg-o \fcfile.json\f0 {\fg-i \fcfile.lua\f0} [\fg-compact\f0|\fg-split\f0|\fg-raw\f0] [\fg-objects\f0]"
     cp "  Convert one or more lua-data files to Json"
   if showDetail "convert" then
-    cp "  \fg-o \fcfile.json\f0    The output file name"
+    cp "  \fg-o \fcfile.json\f0    The output file name. Optional if there is exactly 1 input."
     cp "  \fg-i \fcfile.lua\f0     An input file defining one or more named globals."
     cp "  \fx\fx\fx                If there are more then they are concatenated into the output pseudo-table"
     cp "  \fg-split\f0\fx          Split tables by key type ('x' for integer indexed, 'k' for string keyed)"
-    cp "  \fx\fx\fx                In untypical cases you may also find 'b' (boolean) and 'f' (float)"
+    cp "  \fx\fx\fx                In untypical cases you may also find 'b' (boolean-keyed) and 'f' (float-indexed)"
+    cp "  \fg-compact\f0\fx        Like \fg-split\f0, but if there is only one type, it is unwrapped. And if there is"
+    cp "  \fx\fx\fx                none, null is returned."
     cp "  \fg-raw\f0\fx            Emit tables in raw form, an array of key-value objects"
-    cp "  \fg-objects\f0\fx        Tables that only have only string keys are converted to objects (bypassing \fg-raw\f0/\fg-split\f0)"
+    cp "  \fg-objects\f0\fx        Tables that only have only string keys are converted to objects"
+    cp "  \fx\fx\fx                (bypassing \fg-raw\f0/\fg-split\f0/\fg-compact\f0)"
     cp ""
   if showSection "" then
     cp "\fyCommon options\f0"
