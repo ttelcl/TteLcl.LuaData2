@@ -1,0 +1,30 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <GenerateDocumentationFile>True</GenerateDocumentationFile>
+    <VersionPrefix>1.0.0</VersionPrefix>
+    <Title>Reader for data-only LUA files</Title>
+    <Authors>ttelcl</Authors>
+    <Description>A reader for data-only LUA files, including JSON export support</Description>
+    <Copyright>$(Authors)</Copyright>
+    <RepositoryUrl>https://github.com/ttelcl/TteLcl.LuaData2</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/ttelcl/TteLcl.LuaData2</PackageProjectUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)'=='Debug'">
+    <VersionSuffix>debug</VersionSuffix>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)'=='Release'">
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
+  </ItemGroup>
+
+</Project>
